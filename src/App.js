@@ -1,16 +1,22 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import Header from './components/Header';
 import TasksPage from './components/TasksPage';
-import { createTask, editTask, fetchTasks, filterTasks } from './actions';
+import { 
+  createTask, 
+  editTask, 
+  fetchProjects, 
+  filterTasks,
+  setCurrentProjectId,
+} from './actions';
 import FlashMessage from './components/FlashMessage';
-import { getFilteredTasks } from './reducers';
-import { getGroupedAndFilteredTasks } from './reducers';
+import { getGroupedAndFilteredTasks, getProjects } from './reducers';
 
 
 class App extends Component {
 
   componentDidMount() {
-    this.props.dispatch(fetchTasks());
+    this.props.dispatch(fetchProjects());
   }
   
   onCreateTask = ({ title, description }) => {
@@ -25,11 +31,19 @@ class App extends Component {
     this.props.dispatch(filterTasks(e));
   }
 
+  onCurrentProjectchange = e => {
+    this.props.dispatch(setCurrentProjectId(Number(e.target.value)));
+  };
+
   render() {
     return (
       <div className='container'>
         {this.props.error && <FlashMessage message={this.props.error} />}
         <div className='main-content'>
+          <Header 
+            projects={this.props.projects}
+            onCurrentProjectchange={this.onCurrentProjectchange}
+          />
           <TasksPage 
             tasks={this.props.tasks} 
             onCreateTask={this.onCreateTask}
@@ -44,9 +58,15 @@ class App extends Component {
 }
 
 function mapStateToProps(state) {
-  const { isLoading, error } = state.tasks;
+  const { isLoading, error } = state.projects;
 
-  return { tasks: getGroupedAndFilteredTasks(state), isLoading, error };
+  return { 
+    tasks: getGroupedAndFilteredTasks(state), 
+    projects: getProjects(state),
+    currentProjectId: state.page.currentProjectId,
+    isLoading, 
+    error 
+  };
 }
 
 export default connect(mapStateToProps)(App);

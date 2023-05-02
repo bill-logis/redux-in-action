@@ -5,10 +5,9 @@ import App from './App';
 import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
-import tasks from './reducers';
+import { projects, tasks, page } from './reducers';
 import reportWebVitals from './reportWebVitals';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import tasksReducer from './reducers';
 import createSagaMiddleware from 'redux-saga';
 import rootSaga from './sagas';
 
@@ -16,7 +15,9 @@ const sagaMiddleware = createSagaMiddleware();
 
 const rootReducer = (state = {}, action) => {
   return {
-    tasks: tasksReducer(state.tasks, action),
+    projects: projects(state.projects, action),
+    tasks: tasks(state.tasks, action),
+    page: page(state.page, action),
   };
 };
 
