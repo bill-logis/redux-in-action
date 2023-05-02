@@ -1,8 +1,35 @@
+import { createSelector } from "reselect";
+import { TASK_STATUSES } from "../constants";
+
 const initialState = {
     tasks: [],
     isLoading: false,
     error: null,
+    searchTerm: '',
 };
+
+export const getTasks = state => state.tasks.tasks;
+export const getSearchTerm = state => state.tasks.searchTerm;
+
+export const getFilteredTasks = createSelector(
+    [getTasks, getSearchTerm],
+    (tasks, searchTerm) => {
+        return tasks.filter(task => task.title.match(new RegExp(searchTerm, 'i')));
+    },
+);
+
+export const getGroupedAndFilteredTasks = createSelector(
+    [getFilteredTasks],
+    tasks => {
+        const grouped = {};
+
+        TASK_STATUSES.forEach(status => {
+            grouped[status] = tasks.filter(task => task.status === status);
+        });
+
+        return grouped;
+    },
+);
 
 export default function tasks(state = initialState, action) {
     switch (action.type) {
@@ -77,6 +104,10 @@ export default function tasks(state = initialState, action) {
             });
 
             return {...state, tasks: nextTasks };
+        }
+
+        case 'FILTER_TASKS': {
+            return { ...state, searchTerm: action.payload.searchTerm };
         }
     
         default: {
