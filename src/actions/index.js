@@ -1,7 +1,6 @@
 import * as api from '../api';
 
-
-function fetchTasksStarted() {
+export function fetchTasks() {
     return {
         type: 'FETCH_TASKS_STARTED',
     };
@@ -16,7 +15,15 @@ function fetchTasksFailed(error) {
     };
 }
 
-export function createTaskSucceeded(task) {
+function progressTimerStart(taskId) {
+    return { type: 'TIMER_STARTED', payload: { taskId } };
+}
+
+function progressTimerStop(taskId) {
+    return { type: 'TIMER_STOPPED', payload: { taskId } };
+}
+
+function createTaskSucceeded(task) {
     return {
         type: 'CREATE_TASK_SUCCEEDED',
         payload: {
@@ -45,10 +52,20 @@ export function editTaskSucceeded(task) {
 export function editTask(id, params = {}) {
     return (dispatch, getState) => {
         const task = getTaskById(getState().tasks.tasks, id);
-        const updatedTask = Object.assign({}, task, params);
+        const updatedTask = {
+            ...task, 
+            ...params
+        };
 
         api.editTask(id, updatedTask ).then(resp => {
             dispatch(editTaskSucceeded(resp.data));
+            if (resp.data.status === 'In Progress') {
+                return dispatch(progressTimerStart(resp.data.id));
+            }
+
+            if (task.status === 'In Progress') {
+                return dispatch(progressTimerStop(resp.data.id));
+            }
         });
     };
 }
@@ -64,20 +81,4 @@ export function fetchTasksSucceeded(tasks) {
             tasks
         }
     }
-}
-
-export function fetchTasks() {
-    return dispatch => {
-        dispatch(fetchTasksStarted())
-
-        api.fetchTasks()
-        .then(resp => {
-            setTimeout(() => {
-                dispatch(fetchTasksSucceeded(resp.data));
-            }, 2000);            
-        })
-        .catch(err => {
-            dispatch(fetchTasksFailed(err.message));
-        });
-    };
 }
