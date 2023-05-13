@@ -1,13 +1,13 @@
 import { createSelector } from 'reselect';
 import { TASK_STATUSES } from '../constants';
 
-const initialTasksState = {
+const initialState = {
   items: {},
   isLoading: false,
   error: null,
 };
 
-export function tasks(state = initialTasksState, action) {
+export function tasks(state = initialState, action) {
   switch (action.type) {
     case 'RECEIVE_ENTITIES': {
       const { entities } = action.payload;
@@ -35,7 +35,7 @@ export function tasks(state = initialTasksState, action) {
       };
     }
     case 'TIMER_INCREMENT': {
-      const nextTasks = Object.keys(state.items).map(taskId => {
+      const nextTasks = Object.keys(state.items).map((taskId) => {
         const task = state.items[taskId];
 
         if (task.id === action.payload.taskId) {
@@ -55,13 +55,13 @@ export function tasks(state = initialTasksState, action) {
   }
 }
 
-const initialProjectsState = {
-  items: {},
-  isLoading: false,
-  error: null,
-};
+// const initialProjectsState = {
+//   items: {},
+//   isLoading: false,
+//   error: null,
+// };
 
-export function projects(state = initialProjectsState, action) {
+export function projects(state = initialState, action) {
   switch (action.type) {
     case 'RECEIVE_ENTITIES': {
       const { entities } = action.payload;
@@ -110,42 +110,44 @@ export function projects(state = initialProjectsState, action) {
   }
 }
 
-const getSearchTerm = state => state.page.searchTerm;
+const getSearchTerm = (state) => state.page.tasksSearchTerm;
 
-const getTasksByProjectId = state => {
-  const { currentProjectId } = state.page;
-
-  if (!currentProjectId || !state.projects.items[currentProjectId]) {
+const getTasksByProjectId = (state) => {
+  if (!state.page.currentProjectId) {
     return [];
   }
 
-  const taskIds = state.projects.items[currentProjectId].tasks;
+  const currentProject = state.projects.items.find(
+    (project) => project.id === state.page.currentProjectId
+  );
 
-  return taskIds.map(id => state.tasks.items[id]);
+  return currentProject.tasks;
 };
 
 export const getFilteredTasks = createSelector(
   [getTasksByProjectId, getSearchTerm],
   (tasks, searchTerm) => {
-    return tasks.filter(task => task.title.match(new RegExp(searchTerm, 'i')));
+    return tasks.filter((task) =>
+      task.title.match(new RegExp(searchTerm, 'i'))
+    );
   }
 );
 
 export const getGroupedAndFilteredTasks = createSelector(
   [getFilteredTasks],
-  tasks => {
+  (tasks) => {
     const grouped = {};
 
-    TASK_STATUSES.forEach(status => {
-      grouped[status] = tasks.filter(task => task.status === status);
+    TASK_STATUSES.forEach((status) => {
+      grouped[status] = tasks.filter((task) => task.status === status);
     });
 
     return grouped;
   }
 );
 
-export const getProjects = state => {
-  return Object.keys(state.projects.items).map(id => {
+export const getProjects = (state) => {
+  return Object.keys(state.projects.items).map((id) => {
     return state.projects.items[id];
   });
 };

@@ -22,8 +22,8 @@ const rootReducer = (state = {}, action) => {
 };
 
 const store = createStore(
-  rootReducer, 
-  composeWithDevTools(applyMiddleware(thunk, sagaMiddleware)) 
+  rootReducer,
+  composeWithDevTools(applyMiddleware(thunk, sagaMiddleware))
 );
 
 sagaMiddleware.run(rootSaga);
@@ -34,7 +34,9 @@ if (module.hot) {
   module.hot.accept('./App', () => {
     const NextApp = require('./App').default;
     ReactDOM.render(
-      <Provider store={store}><NextApp /></Provider>,
+      <Provider store={store}>
+        <NextApp />
+      </Provider>,
       document.getElementById('root')
     );
   });

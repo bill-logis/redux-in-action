@@ -1,5 +1,4 @@
 import * as api from '../api';
-import { normalize, schema } from 'normalizr';
 
 export const SET_CURRENT_PROJECT_ID = 'SET_CURRENT_PROJECT_ID';
 export function setCurrentProjectId(id) {
@@ -21,16 +20,8 @@ function fetchProjectsFailed(err) {
   return { type: FETCH_PROJECTS_FAILED, payload: err };
 }
 
-const taskSchema = new schema.Entity('tasks');
-const projectSchema = new schema.Entity('projects', {
-  tasks: [taskSchema],
-});
-
-function receiveEntities(entities) {
-  return {
-    type: 'RECEIVE_ENTITIES',
-    payload: entities,
-  };
+function fetchProjectsSucceeded(projects) {
+  return { type: 'FETCH_PROJECTS_SUCCEEDED', payload: { projects } };
 }
 
 export function fetchProjects() {
@@ -39,12 +30,12 @@ export function fetchProjects() {
 
     return api
       .fetchProjects()
-      .then(resp => {
+      .then((resp) => {
         const projects = resp.data;
 
-        const normalizedData = normalize(projects, [projectSchema]);
+        // const normalizedData = normalize(projects, [projectSchema]);
 
-        dispatch(receiveEntities(normalizedData));
+        dispatch(fetchProjectsSucceeded(projects));
 
         // Pick a board to show on initial page load
         if (!getState().page.currentProjectId) {
@@ -52,7 +43,7 @@ export function fetchProjects() {
           dispatch(setCurrentProjectId(defaultProjectId));
         }
       })
-      .catch(err => {
+      .catch((err) => {
         fetchProjectsFailed(err);
       });
   };
@@ -72,8 +63,8 @@ export function fetchTasksSucceeded() {
 }
 
 export function fetchTasks(boardId) {
-  return dispatch => {
-    return api.fetchTasks(boardId).then(resp => {
+  return (dispatch) => {
+    return api.fetchTasks(boardId).then((resp) => {
       dispatch(fetchTasksSucceeded(resp.data));
     });
   };
@@ -95,7 +86,7 @@ export function createTask({
   status = 'Unstarted',
 }) {
   return (dispatch, getState) => {
-    api.createTask({ title, description, status, projectId }).then(resp => {
+    api.createTask({ title, description, status, projectId }).then((resp) => {
       dispatch(createTaskSucceeded(resp.data));
     });
   };
@@ -116,7 +107,7 @@ export function editTask(task, params = {}) {
       ...task,
       ...params,
     };
-    api.editTask(task.id, updatedTask).then(resp => {
+    api.editTask(task.id, updatedTask).then((resp) => {
       dispatch(editTaskSucceeded(resp.data));
 
       // if task moves into "In Progress", start timer
